@@ -34,7 +34,7 @@
  * @since      File available since Release 1.0.0
  */
 
-namespace Roots;
+namespace PluginBase;
 
 /**
  * Main plugin class
@@ -44,7 +44,12 @@ namespace Roots;
  * @copyright  2013-2014 Roots
  * @since      Class available since Release 1.0.0
  */
-abstract class PluginBase {
+abstract class Base {
+
+  /**
+   * Plugin name
+   */
+  const NAME = 'Base Plugin';
 
   /**
    * Plugin root directory
@@ -231,7 +236,7 @@ abstract class PluginBase {
         break;
     }
 
-    array_unshift($e, __NAMESPACE__);
+    array_unshift($e, static::NAME);
 
     $e[0] = "<b>{$e[0]}";
     $e[1] = "{$e[1]}:</b>";

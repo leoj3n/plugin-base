@@ -1,0 +1,17 @@
+{
+  "name": "roots/plugin-base",
+  "description": "WordPress plugin base",
+  "keywords": ["wordpress"],
+  "homepage": "http://rootstheme.com",
+  "authors": [
+    {
+        "name": "Joel Kuzmarski",
+        "email": "leoj3n+PluginBase@gmail.com"
+    }
+  ],
+  "autoload": {
+    "psr-0" : {
+        "PluginBase": "src/"
+    }
+  }
+}

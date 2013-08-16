@@ -246,7 +246,7 @@ abstract class Base {
     if ($c === E_USER_ERROR) {
       die($e);
     } else {
-      echo $e;
+      echo "{$e}\n";
     }
 
     return true;

@@ -58,10 +58,32 @@ abstract class Base {
   protected static $root;
 
   /**
-   * Stack of unsuspended/resumed error handlers
-   * @staticvar array
+   * Error handling bitmask
+   * Subclasses can override with values of their own.
    */
-  protected static $handlers = array();
+  protected static $bitmask;
+
+  /**
+   * History of error handling bitmasks
+   *
+   * Allows the original error_reporting() bitmask to be restored like so:
+   *
+   * <code>
+   * error_reporting(E_ALL ^ E_NOTICE);   // disable reporting notices
+   *
+   * self::resumeErrorHandling();         // resume handling
+   *
+   * error_reporting(E_NOTICE);           // enable reporting notices
+   *
+   * trigger_error('...', E_USER_NOTICE); // reported
+   *
+   * self::suspendErrorHandling();        // suspend handling
+   *
+   * trigger_error('...', E_USER_NOTICE); // not reported
+   * </code>
+   *
+   */
+  protected static $bitmaskHistory = array();
 
   /**
    * Initializes the plugin
@@ -74,6 +96,11 @@ abstract class Base {
    */
   public static function init($root) {
     self::$root = trailingslashit($root);
+
+    self::$bitmask = E_USER_NOTICE
+                   | E_USER_ERROR
+                   | E_USER_WARNING
+                   | E_USER_DEPRECATED;
   }
 
   /**
@@ -100,34 +127,30 @@ abstract class Base {
    * @since      Method available since Release 1.0.0
    */
   public static function resumeErrorHandling($h = 'errorHandler') {
-    $handler = array(get_called_class(), $h);
+    // pushes new handler onto PHPs internal stack
+    set_error_handler(array(get_called_class(), $h), self::$bitmask);
 
-    if (current(self::$handlers) !== $handler) {
-      array_unshift(
-        self::$handlers,
-        set_error_handler(
-          $handler,
-          E_USER_NOTICE | E_USER_ERROR | E_USER_WARNING | E_USER_DEPRECATED
-        )
-      );
-    }
+    // records previous bitmask so it can be restored
+    array_unshift(self::$bitmaskHistory, error_reporting());
   }
 
   /**
    * Suspends handling of trigger_error()
    * This method closes error handling resumed earlier in execution.
-   * @return     mixed
+   * @return     mixed the current handler
    * @see        self::errorHandler()
    * @uses       restore_error_handler() restores the previous error handler
    * @since      Method available since Release 1.0.0
    */
-  public static function suspendErrorHandling($h = 'errorHandler') {
-    if (current(self::$handlers) === array(get_called_class(), $h)) {
-      restore_error_handler();
-      return array_shift(self::$handlers);
-    } else {
-      return current(self::$handlers);
-    }
+  public static function suspendErrorHandling() {
+    // pops newest handler off PHPs internal stack
+    restore_error_handler();
+
+    // resets previous bitmask
+    error_reporting(current(self::$bitmaskHistory));
+
+    // returns discarded bitmask
+    return array_shift(self::$bitmaskHistory);
   }
 
   /**
@@ -212,7 +235,7 @@ abstract class Base {
       return; // silence is golden
     }
 
-    $e = array($m);
+    $e = array(static::NAME);
 
     switch ($c) {
       case E_USER_NOTICE:
@@ -236,10 +259,10 @@ abstract class Base {
         break;
     }
 
-    array_unshift($e, static::NAME);
-
     $e[0] = "<b>{$e[0]}";
     $e[1] = "{$e[1]}:</b>";
+
+    array_push($e, $m);
 
     $e = implode(' ', $e);
 

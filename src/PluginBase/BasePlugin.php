@@ -44,7 +44,7 @@ namespace PluginBase;
  * @copyright  2013-2014 Roots
  * @since      Class available since Release 1.0.0
  */
-abstract class Base {
+abstract class BasePlugin {
 
   /**
    * Plugin name

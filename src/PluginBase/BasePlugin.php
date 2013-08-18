@@ -269,7 +269,7 @@ abstract class BasePlugin {
     if ($c === E_USER_ERROR) {
       die($e);
     } else {
-      echo "{$e}\n";
+      echo "{$e}.\n";
     }
 
     return true;

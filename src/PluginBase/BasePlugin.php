@@ -110,7 +110,7 @@ abstract class BasePlugin {
    * @throws     Exception [if not found]
    * @since      Method available since Release 1.0.0
    */
-  public static function root($path) {
+  public static function root($path = 'plugin.php') {
     if (file_exists($try = self::$root.ltrim($path, '/'))) {
       return $try;
     } else {

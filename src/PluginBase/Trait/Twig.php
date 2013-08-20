@@ -20,14 +20,21 @@ trait Trait_Twig {
   /**
    * "Bootstraps" the Twig environment and filesystem
    *
+   * @return     void
+   * @param      string $templates templates directory for Twig
    * @param      string $cache cache directory for Twig
-   * @return     \Twig_Environment
    * @since      Method available since Release 1.0.0
    */
-  public static function bootstrapTwig($cache) {
-    return new \Twig_Environment(
-      new \Twig_Loader_Filesystem(self::root('templates')),
-      array('cache' => self::root($cache), 'debug' => @constant(WP_DEBUG))
+  public static function bootstrapTwig(
+    $templates = 'templates', $cache = 'cache'
+  ) {
+    // sets the twig variable
+    self::$twig = new \Twig_Environment(
+      new \Twig_Loader_Filesystem(self::root($templates)),
+      array('cache' => self::root($cache), 'debug' => @constant('WP_DEBUG'))
     );
+
+    // loads the debug extension (only used if 'debug' is true above)
+    self::$twig->addExtension(new \Twig_Extension_Debug());
   }
 }

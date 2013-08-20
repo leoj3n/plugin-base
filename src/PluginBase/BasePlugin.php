@@ -36,6 +36,8 @@
 
 namespace PluginBase;
 
+use PluginBase\BaseException as Exception;
+
 /**
  * Main plugin class
  *
@@ -105,6 +107,7 @@ abstract class BasePlugin {
 
   /**
    * Gets filepath relative to root directory
+   *
    * @param      string $path filepath to try
    * @return     string|void filepath relative to plugin root if found
    * @throws     Exception [if not found]
@@ -114,8 +117,57 @@ abstract class BasePlugin {
     if (file_exists($try = self::$root.ltrim($path, '/'))) {
       return $try;
     } else {
-      throw new Exception("Cannot locate root relative path {$try}");
+      throw self::newCascadingClass(
+        'Exception',
+        "Cannot locate root relative path '{$try}'"
+      );
     }
+  }
+
+  /**
+   * Searches for a namespaced class in order of subclass->class->global
+   *
+   * @param      array $args first argument MUST be the classname
+   * @return     class returns the class if found
+   * @throws     Exception [if not found]
+   * @since      Method available since Release 1.0.0
+   */
+  protected static function newCascadingClass() {
+    // stores passed arguments as an array
+    $args = func_get_args();
+
+    // shifts classname off front of arguments array
+    $cn = array_shift($args);
+
+    // gets calling class namespace
+    $ccns = (new \ReflectionClass(get_called_class()))->getNamespaceName();
+
+    // assembles fully qualified class name
+    $fqcn = "{$ccns}\\{$cn}";
+
+    switch (true) {
+      // trys the calling class namespace
+      case class_exists($fqcn):
+        $found = $fqcn;
+        break;
+
+      // trys the called class namespace
+      case class_exists($cn):
+        $found = $cn;
+        break;
+
+      // trys the global namespace
+      case class_exists($gcn = "\\{$classname}"):
+        $found = $gcn;
+        break;
+
+      default:
+        throw new Exception("Unable to locate cascading class '{$classname}'");
+        break;
+    }
+
+    // returns a new instance of the first found class
+    return (new \ReflectionClass($found))->newInstanceArgs($args);
   }
 
   /**

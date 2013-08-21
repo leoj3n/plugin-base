@@ -10,6 +10,7 @@ namespace PluginBase;
  * @since      Class available since Release 1.0.0
  */
 trait Trait_Twig {
+
   /**
    * Twig templating engine instance
    *

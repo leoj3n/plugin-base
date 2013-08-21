@@ -11,13 +11,16 @@ namespace PluginBase;
  * @since      Class available since Release 1.0.0
  */
 class BaseException extends \Exception {
-  public function __toString() {
-    return sprintf(
-      "%s: [%d]: %s\n",
-      __CLASS__, $this->code, $this->message
-    );
-  }
+  //use BaseTrait_ToString_Rudimentary; // @FIXME: too simple
 
+  /**
+   * Converts PHP error constants into user-generated error constants
+   *
+   * @return     void
+   * @param      string $templates templates directory for Twig
+   * @param      string $cache cache directory for Twig
+   * @since      Method available since Release 1.0.0
+   */
   public function getUserCode() {
     switch ($this->code) {
       case E_ERROR:

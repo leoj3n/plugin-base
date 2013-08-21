@@ -55,12 +55,14 @@ abstract class BasePlugin {
 
   /**
    * Plugin root directory
+   *
    * @staticvar string
    */
   protected static $root;
 
   /**
    * Error handling bitmask
+   *
    * Subclasses can override with values of their own.
    */
   protected static $bitmask;
@@ -89,15 +91,20 @@ abstract class BasePlugin {
 
   /**
    * Initializes the plugin
-   * This method adds an <code>init</code> action hook.
-   * It should be called once from an file included by the WordPress.
+   *
+   * Call this method once from an file included by the WordPress.
+   *
    * @param      string $root plugin root directory
    * @param      string $cache cache directory for Twig
    * @return     void
    * @since      Method available since Release 1.0.0
    */
   public static function init($root) {
-    self::$root = trailingslashit($root);
+
+    self::$root
+     = @is_file($root)
+     ? plugin_dir_path($roots)
+     : trailingslashit($root);
 
     self::$bitmask = E_USER_NOTICE
                    | E_USER_ERROR
@@ -172,7 +179,9 @@ abstract class BasePlugin {
 
   /**
    * Resumes handling of trigger_error()
+   *
    * Proceeding trigger_error() calls will be handled by self::errorHandler().
+   *
    * @return     void
    * @see        self::errorHandler()
    * @uses       get_called_class() gets the namespaced classname
@@ -188,7 +197,9 @@ abstract class BasePlugin {
 
   /**
    * Suspends handling of trigger_error()
+   *
    * This method closes error handling resumed earlier in execution.
+   *
    * @return     mixed the current handler
    * @see        self::errorHandler()
    * @uses       restore_error_handler() restores the previous error handler
@@ -321,7 +332,7 @@ abstract class BasePlugin {
     if ($c === E_USER_ERROR) {
       die($e);
     } else {
-      echo "{$e}.\n";
+      echo trim($e).".\n";
     }
 
     return true;

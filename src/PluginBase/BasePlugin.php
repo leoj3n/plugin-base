@@ -33,7 +33,6 @@
  *             The MIT License (MIT)
  * @since      File available since Release 1.0.0
  */
-
 namespace PluginBase;
 
 use PluginBase\BaseException as Exception;
@@ -54,18 +53,16 @@ abstract class BasePlugin {
   const NAME = 'Base Plugin';
 
   /**
+   * Text domain
+   */
+  const DOMAIN = 'roots-plugin-base';
+
+  /**
    * Plugin root directory
    *
    * @staticvar string
    */
-  protected static $root;
-
-  /**
-   * Error handling bitmask
-   *
-   * Subclasses can override with values of their own.
-   */
-  protected static $bitmask;
+  private static $root;
 
   /**
    * History of error handling bitmasks
@@ -73,21 +70,27 @@ abstract class BasePlugin {
    * Allows the original error_reporting() bitmask to be restored like so:
    *
    * <code>
-   * error_reporting(E_ALL ^ E_NOTICE);   // disable reporting notices
+   * error_reporting(E_ALL ^ E_NOTICE);   # disable reporting notices
    *
-   * self::resumeErrorHandling();         // resume handling
+   * self::resumeErrorHandling();         # resume handling
    *
-   * error_reporting(E_NOTICE);           // enable reporting notices
+   * error_reporting(E_NOTICE);           # enable reporting notices
    *
-   * trigger_error('...', E_USER_NOTICE); // reported
+   * trigger_error('...', E_USER_NOTICE); # reported
    *
-   * self::suspendErrorHandling();        // suspend handling
+   * self::suspendErrorHandling();        # suspend handling
    *
-   * trigger_error('...', E_USER_NOTICE); // not reported
+   * trigger_error('...', E_USER_NOTICE); # not reported
    * </code>
-   *
    */
-  protected static $bitmaskHistory = array();
+  private static $bitmaskHistory = array();
+
+  /**
+   * Error handling bitmask
+   *
+   * Subclasses can override with values of their own.
+   */
+  protected static $bitmask;
 
   /**
    * Initializes the plugin
@@ -100,12 +103,16 @@ abstract class BasePlugin {
    * @since      Method available since Release 1.0.0
    */
   public static function init($root) {
-
+    # determines root path
     self::$root
      = @is_file($root)
      ? plugin_dir_path($roots)
      : trailingslashit($root);
 
+    # loads (explicit) base plugin text domain
+    load_plugin_textdomain(self::DOMAIN, '', trailingslashit(__DIR__).'lang');
+
+    # sets error handling bitmask
     self::$bitmask = E_USER_NOTICE
                    | E_USER_ERROR
                    | E_USER_WARNING
@@ -120,7 +127,7 @@ abstract class BasePlugin {
    * @throws     Exception [if not found]
    * @since      Method available since Release 1.0.0
    */
-  public static function root($path = 'plugin.php') {
+  final public static function root($path = 'plugin.php') {
     if (file_exists($try = self::$root.ltrim($path, '/'))) {
       return $try;
     } else {
@@ -139,31 +146,31 @@ abstract class BasePlugin {
    * @throws     Exception [if not found]
    * @since      Method available since Release 1.0.0
    */
-  protected static function newCascadingClass() {
-    // stores passed arguments as an array
+  final protected static function newCascadingClass() {
+    # stores passed arguments as an array
     $args = func_get_args();
 
-    // shifts classname off front of arguments array
+    # shifts classname off front of arguments array
     $cn = array_shift($args);
 
-    // gets calling class namespace
+    # gets calling class namespace
     $ccns = (new \ReflectionClass(get_called_class()))->getNamespaceName();
 
-    // assembles fully qualified class name
+    # assembles fully qualified class name
     $fqcn = "{$ccns}\\{$cn}";
 
     switch (true) {
-      // trys the calling class namespace
+      # tries the calling class namespace
       case class_exists($fqcn):
         $found = $fqcn;
         break;
 
-      // trys the called class namespace
+      # tries the called class namespace
       case class_exists($cn):
         $found = $cn;
         break;
 
-      // trys the global namespace
+      # tries the global namespace
       case class_exists($gcn = "\\{$classname}"):
         $found = $gcn;
         break;
@@ -173,7 +180,7 @@ abstract class BasePlugin {
         break;
     }
 
-    // returns a new instance of the first found class
+    # returns a new instance of the first found class
     return (new \ReflectionClass($found))->newInstanceArgs($args);
   }
 
@@ -188,10 +195,10 @@ abstract class BasePlugin {
    * @since      Method available since Release 1.0.0
    */
   public static function resumeErrorHandling($h = 'errorHandler') {
-    // pushes new handler onto PHPs internal stack
-    set_error_handler(array(get_called_class(), $h), self::$bitmask);
+    # pushes new handler onto PHPs internal stack
+    set_error_handler(array(get_called_class(), $h), static::$bitmask);
 
-    // records previous bitmask so it can be restored
+    # records previous bitmask so it can be restored
     array_unshift(self::$bitmaskHistory, error_reporting());
   }
 
@@ -206,13 +213,13 @@ abstract class BasePlugin {
    * @since      Method available since Release 1.0.0
    */
   public static function suspendErrorHandling() {
-    // pops newest handler off PHPs internal stack
+    # pops newest handler off PHPs internal stack
     restore_error_handler();
 
-    // resets previous bitmask
+    # resets previous bitmask
     error_reporting(current(self::$bitmaskHistory));
 
-    // returns discarded bitmask
+    # returns discarded bitmask
     return array_shift(self::$bitmaskHistory);
   }
 
@@ -293,9 +300,9 @@ abstract class BasePlugin {
    * @since      Method available since Release 1.0.0
    */
   public static function errorHandler($c, $m, $f, $l) {
-    // ensure reporting for code is enabled
+    # ensure reporting for code is enabled
     if (!(error_reporting() & $c)) {
-      return; // silence is golden
+      return; # silence is golden
     }
 
     $e = array(static::NAME);
@@ -318,7 +325,7 @@ abstract class BasePlugin {
         break;
 
       default:
-        return false; // execute PHP internal error handler
+        return false; # execute PHP internal error handler
         break;
     }
 
@@ -338,4 +345,4 @@ abstract class BasePlugin {
     return true;
   }
 
-} // PluginBase
+} # PluginBase

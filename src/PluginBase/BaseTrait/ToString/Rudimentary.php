@@ -1,6 +1,6 @@
 <?php
 
-namespace PluginBase\ToString;
+namespace PluginBase;
 
 /**
  * Rudimentary __toString() trait, for basic exception messages
@@ -10,7 +10,7 @@ namespace PluginBase\ToString;
  * @copyright  2013-2014 Roots
  * @since      Class available since Release 1.0.0
  */
-trait Trait_ToString_Rudimentary {
+trait BaseTrait_ToString_Rudimentary {
 
   /**
    * Returns a custom exception message string
@@ -24,4 +24,4 @@ trait Trait_ToString_Rudimentary {
       get_called_class(), $this->code, $this->message
     );
   }
-}
+} # BaseTrait_ToString_Rudimentary

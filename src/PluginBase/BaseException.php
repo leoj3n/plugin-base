@@ -11,7 +11,7 @@ namespace PluginBase;
  * @since      Class available since Release 1.0.0
  */
 class BaseException extends \Exception {
-  //use BaseTrait_ToString_Rudimentary; // @FIXME: too simple
+  //use BaseTrait_ToString_Rudimentary; # @FIXME: too simple
 
   /**
    * Converts PHP error constants into user-generated error constants
